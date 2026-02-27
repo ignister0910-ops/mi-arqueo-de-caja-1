@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Arqueo de Caja</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 550px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 { margin: 0; font-size: 1.25rem; letter-spacing: 1px; text-transform: uppercase; }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f1f5f9;
+            padding: 12px;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #64748b;
+            border-bottom: 2px solid var(--border);
+        }
+
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .denom-cell { font-weight: 600; color: #334155; }
+        
+        .input-qty {
+            width: 70px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .input-qty:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            background: #eff6ff;
+        }
+
+        .total-cell {
+            text-align: right;
+            font-family: monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .footer-totals {
+            background: #f8fafc;
+            padding: 20px;
+            border-top: 2px solid var(--border);
+        }
+
+        .grand-total-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--primary);
+        }
+
+        .grand-total-label { font-weight: 800; font-size: 1.1rem; }
+        .grand-total-value { font-size: 1.5rem; font-weight: 800; }
+
+        .actions {
+            padding: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-print { background: var(--primary); color: white; width: 100%; }
+        .btn-print:hover { background: #1d4ed8; }
+
+        /* Estilos para impresión */
+        @media print {
+            body { background: white; padding: 0; }
+            .card { box-shadow: none; border: 1px solid black; max-width: 100%; }
+            .actions, .input-qty::-webkit-inner-spin-button { display: none; }
+            .input-qty { border: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <header>
+        <h1>Arqueo de Caja</h1>
+    </header>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Denominación</th>
+                <th>Cantidad</th>
+                <th style="text-align: right;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody id="cash-rows">
+            </tbody>
+    </table>
+
+    <div class="footer-totals">
+        <div class="grand-total-container">
+            <span class="grand-total-label">TOTAL EN CAJA</span>
+            <span class="grand-total-value" id="grand-total">₡ 0</span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn-print" onclick="window.print()">Imprimir Reporte</button>
+    </div>
+</div>
+
+<script>
+    // Denominaciones de Costa Rica
+    const denominations = [20000, 10000, 5000, 2000, 1000, 500, 100, 50, 25, 10, 5];
+    const tableBody = document.getElementById('cash-rows');
+    const grandTotalDisplay = document.getElementById('grand-total');
+
+    // Generar filas dinámicamente
+    denominations.forEach(val => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="denom-cell">₡ ${val.toLocaleString()}</td>
+            <td>
+                <input type="number" class="input-qty" value="0" min="0" oninput="updateTotals()">
+            </td>
+            <td class="total-cell" data-value="${val}">₡ 0</td>
+        `;
+        tableBody.appendChild(row);
+    });
+
+    function updateTotals() {
+        let totalGeneral = 0;
+        const rows = tableBody.querySelectorAll('tr');
+
+        rows.forEach(row => {
+            const qty = parseInt(row.querySelector('.input-qty').value) || 0;
+            const value = parseInt(row.querySelector('.total-cell').dataset.value);
+            const subtotal = qty * value;
+            
+            row.querySelector('.total-cell').textContent = `₡ ${subtotal.toLocaleString()}`;
+            totalGeneral += subtotal;
+        });
+
+        grandTotalDisplay.textContent = `₡ ${totalGeneral.toLocaleString()}`;
+    }
+</script>
+
+</body>
+</html>
